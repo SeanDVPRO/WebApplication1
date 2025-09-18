@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using WebApplication1.Models;
 using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
@@ -18,6 +20,7 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();

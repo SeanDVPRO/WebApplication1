@@ -1,0 +1,81 @@
+﻿@using WebApplication1.ViewModels
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<div class="account-container">
+    <div class="account-box">
+        <h2 class="text-center mb-4">Login</h2>
+        <form asp-action="Login" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" type="password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="float-end">
+                <a asp-controller="Account" asp-action="VerifyEmail" class="text-decoration-none">
+                    Forgot Password?
+                </a>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label">Remember me?</label>
+            </div>
+
+            <input type="submit" value="Login" class="btn btn-success w-100 p-2" />
+
+            <div class="text-center mt-3">
+                <a asp-controller="Home" asp-action="Index" class="text-decoration-none">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if (TempData["UserCreated"] != null)
+    {
+        <text>
+            <script>
+                Swal.fire({
+                    title: 'Account Created!',
+                    text: 'Your registration was successful. You can now log in.',
+                    icon: 'success',
+                    confirmButtonText: 'Awesome!'
+                });
+            </script>
+        </text>
+    }
+
+    @if (TempData["LoginError"] != null)
+    {
+        <text>
+            <script>
+                Swal.fire({
+                    title: 'Login Failed',
+                    text: '@TempData["LoginError"]',
+                    icon: 'error',
+                    confirmButtonText: 'Try Again'
+                });
+            </script>
+        </text>
+    }
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

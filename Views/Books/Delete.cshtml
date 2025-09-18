@@ -1,0 +1,22 @@
+﻿@model WebApplication1.Models.Book
+@{
+    ViewData["Title"] = "Delete Book";
+}
+
+<h2 class="mb-4 text-danger">Delete Book</h2>
+
+<h5>Are you sure you want to delete this book?</h5>
+
+<div class="mb-3">
+    <strong>Title:</strong> @Model.Title<br />
+    <strong>Author:</strong> @Model.Author<br />
+    <strong>Genre:</strong> @Model.Genre<br />
+    <strong>Year:</strong> @Model.YearPublished
+</div>
+
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

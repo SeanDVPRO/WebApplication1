@@ -1,0 +1,128 @@
+.audit-header {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: #333;
+}
+
+.audit-filters {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.audit-filters .filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    flex: 1;
+}
+
+.audit-filters label {
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.audit-filters .form-control,
+.audit-filters select {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.5rem;
+    height: auto;
+}
+
+.audit-filters .search-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+
+.audit-filters .search-group .form-control {
+    margin-bottom: 0.35rem;
+}
+
+.audit-table th {
+    background: #f4f6f8;
+    font-weight: 600;
+    vertical-align: middle;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.audit-table td {
+    vertical-align: middle;
+    background: #fff;
+    border-top: 1px solid #eaeaea;
+    font-size: 0.88rem;
+}
+
+.audit-table tr:nth-child(even) td {
+    background: #fafafa;
+}
+
+.audit-table tbody tr:hover td {
+    background: #eef5ff;
+}
+
+.audit-view-btn {
+    min-width: 60px;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    background: #1677ff;
+    color: #fff;
+    border: none;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.audit-view-btn:hover {
+    background: #0056b3;
+    color: #fff;
+}
+
+.audit-collapse .card-body {
+    background: #f8f9fa;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    padding: 0.75rem;
+}
+
+.audit-table pre {
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+
+.pagination {
+    margin-top: 1rem;
+}
+
+.page-link {
+    color: #1677ff;
+    border-radius: 0.25rem !important;
+    font-size: 0.85rem;
+}
+
+.page-item.active .page-link {
+    background: #1677ff;
+    color: #fff;
+    border-color: #1677ff;
+}
+
+.page-item.disabled .page-link {
+    color: #ccc;
+    background: #f6f6f6;
+}

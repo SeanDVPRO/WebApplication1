@@ -2,19 +2,21 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using WebApplication1.Services;
 
-namespace WebApplication1.Controllers
+namespace UsersApp.Controllers
 {
     public class AccountController : Controller
     {
         private readonly SignInManager<Users> signInManager;
         private readonly UserManager<Users> userManager;
+        private readonly AuditService _auditService;
 
-        public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager)
+        public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager, AuditService auditService)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
+            _auditService = auditService;
         }
 
         public IActionResult Login()
@@ -31,11 +33,15 @@ namespace WebApplication1.Controllers
 
                 if (result.Succeeded)
                 {
+                    await _auditService.LogAsync(
+                        action: "User Login",
+                        description: $"User '{model.Email}' logged in."
+                    );
                     return RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Email or password is incorrect.");
+                    TempData["LoginError"] = "Email or password is incorrect.";
                     return View(model);
                 }
             }
@@ -63,15 +69,12 @@ namespace WebApplication1.Controllers
 
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Login", "Account");
+                    TempData["RegisterSuccess"] = true;
+                    return View();
                 }
                 else
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError("", error.Description);
-                    }
-
+                    TempData["RegisterError"] = string.Join(" ", result.Errors.Select(e => e.Description));
                     return View(model);
                 }
             }
@@ -124,56 +127,35 @@ namespace WebApplication1.Controllers
                     if (result.Succeeded)
                     {
                         result = await userManager.AddPasswordAsync(user, model.NewPassword);
+                        TempData["PasswordChanged"] = true;
                         return RedirectToAction("Login", "Account");
                     }
                     else
                     {
-
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error.Description);
-                        }
-
+                        TempData["PasswordError"] = string.Join(" ", result.Errors.Select(e => e.Description));
                         return View(model);
                     }
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Email not found!");
+                    TempData["PasswordError"] = "Email not found!";
                     return View(model);
                 }
             }
-            else
-            {
-                ModelState.AddModelError("", "Something went wrong. try again.");
-                return View(model);
-            }
+
+            TempData["PasswordError"] = "Something went wrong. Try again.";
+            return View(model);
         }
 
         public async Task<IActionResult> Logout()
         {
+            var userId = User?.Identity?.Name ?? "Unknown";
+            await _auditService.LogAsync(
+                action: "User Logout",
+                description: $"User '{userId}' logged out."
+            );
             await signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
-        }
-    }
-
-    public class ContactController : Controller
-    {
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult Index(ContactMessage model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-            ViewBag.SuccessMessage = "Your Message is received successfully!";
-            ModelState.Clear();
-            return View();
         }
     }
 }
