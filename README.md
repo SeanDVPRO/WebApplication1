@@ -13,7 +13,7 @@
 ###
 
 <div align="center">
-  <img src="https://visitor-badge.laobi.icu/badge?page_id=maurodesouza.maurodesouza&" />
+  <img src="https://visitor-badge.laobi.icu/badge?page_id=seandev.seandev" />
 </div>
 
 ###
@@ -27,9 +27,10 @@
 ###
 
 <p align="left">
-I'm Sean from Makati, Philippines.<br><br>
-- 🔭 I’m working as a frontend architect focused on ASP.NET Core MVC and Razor Pages<br>
-- 📚 I'm currently mastering Git workflows and layout optimization<br>
+I'm Sean from Cainta Rizal, Philippines.<br><br>
+- 🎮 I’m currently developing games on Roblox using Luau<br>
+- 📚 I'm learning ASP.NET Core and <br>
+- 📚 I'm currently mastering Git workflows and GitHub collaboration for clean version control and team sync <br>
 - ⚡ In my free time I refactor dashboards, explore new tools, and polish UI/UX details
 </p>
 
@@ -72,12 +73,12 @@ I'm Sean from Makati, Philippines.<br><br>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg" height="40" alt="Django logo" />
   <img width="12" />
 
-  <!-- Laravel (fallback PNG) -->
+  <!-- Laravel -->
   <img src="https://raw.githubusercontent.com/github/explore/main/topics/laravel/laravel.png" height="40" alt="Laravel logo" />
   <img width="12" />
 
-  <!-- Laragon (fallback PNG) -->
-  <img src="https://raw.githubusercontent.com/laragon/laragon/master/resources/icons/laragon.png" height="40" alt="Laragon logo" />
+  <!-- Laragon (hosted locally in your repo) -->
+  <img src="https://github.com/seandev/seandev/blob/main/assets/laragon.png?raw=true" height="40" alt="Laragon logo" />
   <img width="12" />
 
   <!-- Postman -->
@@ -91,5 +92,5 @@ I'm Sean from Makati, Philippines.<br><br>
 ###
 
 <div align="center">
-  <img src="https://streak-stats.demolab.com?user=maurodesouza&locale=en&mode=daily&theme=dark&hide_border=false&border_radius=5&order=3" height="220" alt="streak graph" />
+  <img src="https://streak-stats.demolab.com?user=seandev&locale=en&mode=daily&theme=dark&hide_border=false&border_radius=5&order=3" height="220" alt="streak graph" />
 </div>
