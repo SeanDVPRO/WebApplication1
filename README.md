@@ -72,11 +72,11 @@ I'm Sean from Makati, Philippines.<br><br>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg" height="40" alt="Django logo" />
   <img width="12" />
 
-  <!-- Laravel -->
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/laravel/laravel-plain-wordmark.svg" height="40" alt="Laravel logo" />
+  <!-- Laravel (fallback PNG) -->
+  <img src="https://raw.githubusercontent.com/github/explore/main/topics/laravel/laravel.png" height="40" alt="Laravel logo" />
   <img width="12" />
 
-  <!-- Laragon -->
+  <!-- Laragon (fallback PNG) -->
   <img src="https://raw.githubusercontent.com/laragon/laragon/master/resources/icons/laragon.png" height="40" alt="Laragon logo" />
   <img width="12" />
 
