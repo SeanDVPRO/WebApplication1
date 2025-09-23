@@ -37,6 +37,11 @@
 
             <input type="submit" value="Login" class="btn btn-success w-100 p-2" />
 
+            <div class="text-center mt-2">
+                <span>Don't have an account?</span>
+                <a asp-controller="Account" asp-action="Register" class="text-decoration-none ms-1">Create Account</a>
+            </div>
+
             <div class="text-center mt-3">
                 <a asp-controller="Home" asp-action="Index" class="text-decoration-none">Back</a>
             </div>
@@ -47,29 +52,33 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @if (TempData["UserCreated"] != null)
+    @if (TempData["LoginSuccess"] != null && Context.Request.Method == "POST")
     {
         <text>
             <script>
                 Swal.fire({
-                    title: 'Account Created!',
-                    text: 'Your registration was successful. You can now log in.',
+                    title: 'Welcome!',
+                    text: 'Login successful.',
                     icon: 'success',
-                    confirmButtonText: 'Awesome!'
+                    confirmButtonText: 'Continue',
+                    timer: 3000,
+                    timerProgressBar: true
                 });
             </script>
         </text>
     }
 
-    @if (TempData["LoginError"] != null)
+    @if (TempData["LoginError"] != null && Context.Request.Method == "POST")
     {
         <text>
             <script>
+                const error = `@TempData["LoginError"]`;
                 Swal.fire({
                     title: 'Login Failed',
-                    text: '@TempData["LoginError"]',
+                    text: error,
                     icon: 'error',
-                    confirmButtonText: 'Try Again'
+                    confirmButtonText: 'Try Again',
+                    width: 400
                 });
             </script>
         </text>
@@ -79,3 +88,4 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+

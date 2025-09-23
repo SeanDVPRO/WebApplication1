@@ -8,12 +8,21 @@
 </div>
 
 @section Scripts {
-    <script>
-        Swal.fire({
-            title: 'Welcome to UsersApp!',
-            text: 'SweetAlert is now integrated and ready to go.',
-            icon: 'success',
-            confirmButtonText: 'Let\'s build!'
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if (TempData["LoginSuccess"] != null && !string.IsNullOrWhiteSpace(TempData["LoginSuccess"].ToString()))
+    {
+        <text>
+            <script>
+                Swal.fire({
+                    title: 'Login Successful',
+                    text: '@TempData["LoginSuccess"]',
+                    icon: 'success',
+                    confirmButtonText: 'Let\'s build!',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            </script>
+        </text>
+    }
 }

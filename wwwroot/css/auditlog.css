@@ -96,15 +96,18 @@
     padding: 0.75rem;
 }
 
-.audit-table pre {
-    background: #f8f9fa;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.8rem;
+.audit-pre {
     white-space: pre-wrap;
     word-break: break-word;
-    margin: 0;
+    font-family: monospace;
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.25rem;
+    max-height: 300px;
+    overflow-y: auto;
 }
+
 
 .pagination {
     margin-top: 1rem;
@@ -125,4 +128,20 @@
 .page-item.disabled .page-link {
     color: #ccc;
     background: #f6f6f6;
+}
+
+.audit-table th,
+.audit-table td {
+    min-width: 100px;
+    border: 1px solid #dee2e6;
+}
+
+.audit-table th {
+    background-color: #f8f9fa;
+}
+
+.audit-footer {
+    font-weight: bold;
+    background-color: #f1f1f1;
+    text-align: center;
 }

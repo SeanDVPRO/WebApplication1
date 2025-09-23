@@ -7,15 +7,59 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 2rem 0;
+    padding: 2rem 1rem;
 }
 
+/* Form box styling */
 .account-box {
     background-color: #ffffff;
-    padding: 30px;
+    padding: 2rem;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     max-width: 500px;
     width: 100%;
-    opacity: 0.9;
+    opacity: 0.95;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .account-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+    }
+
+/* Input field focus effect */
+input.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+    outline: none;
+}
+
+/* Button styling */
+.btn-success {
+    background: linear-gradient(to right, #28a745, #218838);
+    font-weight: 600;
+    border: none;
+    transition: background 0.3s ease;
+}
+
+    .btn-success:hover {
+        background: #1e7e34;
+    }
+
+/* Link styling */
+a.text-decoration-none:hover {
+    text-decoration: underline;
+    color: #0d6efd;
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+    .account-box {
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+
+    .account-container {
+        padding: 1rem;
+    }
 }

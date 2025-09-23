@@ -10,12 +10,33 @@
 <body>
     @RenderBody()
 
-    <div class="text-center mt-4">
-        <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary">View Books</a>
-    </div>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="text-center mt-4">
+            <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary">View Books</a>
+        </div>
+    }
 
     <script src="~/js/lib/jquery/jquery.min.js"></script>
     <script src="~/js/lib/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if (TempData["LogoutSuccess"] != null)
+    {
+        <script>
+            Swal.fire({
+                title: 'Logged Out',
+                text: 'You have been successfully logged out.',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then(() => {
+                window.location.href = '@Url.Action("Login", "Account")';
+            });
+        </script>
+    }
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

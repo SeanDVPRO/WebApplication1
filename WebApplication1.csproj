@@ -4,6 +4,8 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<Version>1.0.4</Version>
+		<AssemblyInformationalVersion>1.0.3+$(BuildMetadata)</AssemblyInformationalVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -16,7 +18,17 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<ItemGroup>		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />		<PackageReference Include="PDFsharp-MigraDoc" Version="6.1.1" />
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="PdfSharp" Version="6.2.1" />
+		<PackageReference Include="PDFsharp-MigraDoc" Version="6.1.1" />
 	</ItemGroup>
+
+	<Target Name="InjectBuildMetadata" BeforeTargets="BeforeBuild">
+		<Exec Command="git rev-parse HEAD > BuildMetadata.txt" />
+		<ReadLinesFromFile File="BuildMetadata.txt">
+			<Output TaskParameter="Lines" PropertyName="BuildMetadata" />
+		</ReadLinesFromFile>
+	</Target>
 
 </Project>

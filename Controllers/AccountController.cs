@@ -4,7 +4,7 @@ using WebApplication1.Models;
 using WebApplication1.ViewModels;
 using WebApplication1.Services;
 
-namespace UsersApp.Controllers
+namespace WebApplication1.Controllers
 {
     public class AccountController : Controller
     {
@@ -29,7 +29,15 @@ namespace UsersApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+                var user = await userManager.FindByEmailAsync(model.Email);
+
+                if (user == null)
+                {
+                    TempData["LoginError"] = "Account not registered.";
+                    return View(model);
+                }
+
+                var result = await signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, false);
 
                 if (result.Succeeded)
                 {
@@ -37,14 +45,26 @@ namespace UsersApp.Controllers
                         action: "User Login",
                         description: $"User '{model.Email}' logged in."
                     );
+
+                    TempData["LoginSuccess"] = $"Welcome back, {user.FullName}!";
                     return RedirectToAction("Index", "Home");
+                }
+                else if (result.IsLockedOut)
+                {
+                    TempData["LoginError"] = "Your account is locked.";
+                }
+                else if (result.IsNotAllowed)
+                {
+                    TempData["LoginError"] = "Your account is not allowed to log in.";
                 }
                 else
                 {
-                    TempData["LoginError"] = "Email or password is incorrect.";
-                    return View(model);
+                    TempData["LoginError"] = "Invalid password.";
                 }
+
+                return View(model);
             }
+
             return View(model);
         }
 
@@ -70,11 +90,11 @@ namespace UsersApp.Controllers
                 if (result.Succeeded)
                 {
                     TempData["RegisterSuccess"] = true;
-                    return View();
+                    return RedirectToAction("Login", "Account");
                 }
                 else
                 {
-                    TempData["RegisterError"] = string.Join(" ", result.Errors.Select(e => e.Description));
+                    TempData["RegisterError"] = string.Join("||", result.Errors.Select(e => e.Description));
                     return View(model);
                 }
             }
@@ -127,12 +147,20 @@ namespace UsersApp.Controllers
                     if (result.Succeeded)
                     {
                         result = await userManager.AddPasswordAsync(user, model.NewPassword);
-                        TempData["PasswordChanged"] = true;
-                        return RedirectToAction("Login", "Account");
+                        if (result.Succeeded)
+                        {
+                            TempData["PasswordChanged"] = true;
+                            return RedirectToAction("Login", "Account");
+                        }
+                        else
+                        {
+                            TempData["PasswordError"] = string.Join("||", result.Errors.Select(e => e.Description));
+                            return View(model);
+                        }
                     }
                     else
                     {
-                        TempData["PasswordError"] = string.Join(" ", result.Errors.Select(e => e.Description));
+                        TempData["PasswordError"] = string.Join("||", result.Errors.Select(e => e.Description));
                         return View(model);
                     }
                 }
@@ -147,15 +175,25 @@ namespace UsersApp.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             var userId = User?.Identity?.Name ?? "Unknown";
+
             await _auditService.LogAsync(
                 action: "User Logout",
                 description: $"User '{userId}' logged out."
             );
+
             await signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            TempData["LogoutSuccess"] = true;
+            return RedirectToAction("LoggedOut");
+        }
+
+        public IActionResult LoggedOut()
+        {
+            return View();
         }
     }
 }

@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
+using WebApplication1.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,10 @@ namespace WebApplication1.Pages.AuditTrail
     {
         private readonly AppDbContext _context;
 
-        public List<WebApplication1.Models.AuditTrail> AuditLogs { get; set; } = new();
-        public List<string> Users { get; set; } = new();
+        public List<AuditLogViewModel> AuditLogs { get; set; } = new();
+
+        public List<AuditUserOption> Users { get; set; } = new();
+
         public List<string> Types { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
@@ -24,17 +27,19 @@ namespace WebApplication1.Pages.AuditTrail
         public DateTime? EndDate { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public string SelectedUser { get; set; }
+        public string SelectedUser { get; set; } = string.Empty;
 
         [BindProperty(SupportsGet = true)]
-        public string SelectedType { get; set; }
+        public string SelectedType { get; set; } = string.Empty;
 
         [BindProperty(SupportsGet = true)]
-        public string SearchTerm { get; set; }
+        public string SearchTerm { get; set; } = string.Empty;
 
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalPages { get; set; }
+
+        public bool IsGuest => !User.Identity.IsAuthenticated;
 
         public IndexModel(AppDbContext context)
         {
@@ -46,11 +51,18 @@ namespace WebApplication1.Pages.AuditTrail
             CurrentPage = page;
             PageSize = pageSize;
 
-            Users = await _context.AuditTrails
-                .Select(a => a.UserId)
-                .Distinct()
-                .OrderBy(u => u)
-                .ToListAsync();
+            Users = await (
+                from a in _context.AuditTrails
+                join u in _context.Users on a.UserId equals u.Id
+                select new AuditUserOption
+                {
+                    UserId = u.Id,
+                    FullName = u.FullName
+                }
+            )
+            .Distinct()
+            .OrderBy(u => u.FullName)
+            .ToListAsync();
 
             Types = await _context.AuditTrails
                 .Select(a => a.Action)
@@ -58,7 +70,27 @@ namespace WebApplication1.Pages.AuditTrail
                 .OrderBy(t => t)
                 .ToListAsync();
 
-            var query = _context.AuditTrails.AsQueryable();
+            if (IsGuest)
+            {
+                AuditLogs = new List<AuditLogViewModel>();
+                TotalPages = 1;
+                return;
+            }
+
+            var query = from a in _context.AuditTrails
+                        join u in _context.Users on a.UserId equals u.Id into userGroup
+                        from u in userGroup.DefaultIfEmpty()
+                        select new AuditLogViewModel
+                        {
+                            Id = a.Id,
+                            UserId = a.UserId,
+                            FullName = u.FullName,
+                            Action = a.Action,
+                            Description = a.Description,
+                            OldValue = a.OldValue,
+                            NewValue = a.NewValue,
+                            Timestamp = a.Timestamp
+                        };
 
             if (StartDate.HasValue)
                 query = query.Where(a => a.Timestamp >= StartDate.Value);

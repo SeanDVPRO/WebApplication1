@@ -13,6 +13,8 @@ namespace WebApplication1.Models
         [Required]
         public string Email { get; set; } = "";
         [Required]
+        public string PhoneNumber { get; set; } = "";
+        [Required]
         public string Message { get; set; } = "";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

@@ -1,11 +1,11 @@
-﻿@model WebApplication1.Models.ContactMessage
+﻿@model WebApplication1.Models.ContactDto
 @{
+    ViewData["Title"] = "Contact Us";
 }
 
-<div class="row">   
-    <div class="col-9 mx-auto rounded border p-4">
-        <h2 class="text-center mb-3">Contact Form</h2>
-        <br />
+<div class="row">
+    <div class="col-lg-8 mx-auto rounded border p-4 shadow-sm bg-white">
+        <h2 class="text-center mb-4">Contact Form</h2>
 
         @if (ViewBag.SuccessMessage != null)
         {
@@ -15,44 +15,41 @@
             </div>
         }
 
-
-        <form method="post">
-            <div class="row mb-3">
-                <label class="col-sm-4  col-form-label">First Name</label>
-                <div class="col-sm-8">
-                    <input class="form-control" asp-for="FirstName"/>
-                    <span asp-validation-for="FirstName" class="text-danger"></span>
-                </div>
-            </div>  
-
-            <div class="row mb-3">
-                <label class="col-sm-4  col-form-label">Last Name</label>
-                <div class="col-sm-8">
-                    <input class="form-control" asp-for="LastName" />
-                    <span asp-validation-for="LastName" class="text-danger"></span>
-                </div>
+        <form method="post" novalidate>
+            <div class="mb-3">
+                <label asp-for="FirstName" class="form-label">First Name</label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger small"></span>
             </div>
 
-            <div class="row mb-3">
-                <label class="col-sm-4  col-form-label">Email</label>
-                <div class="col-sm-8">
-                    <input class="form-control" asp-for="Email" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
+            <div class="mb-3">
+                <label asp-for="LastName" class="form-label">Last Name</label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger small"></span>
             </div>
 
-            <div class="row mb-3">
-                <label class="col-sm-4  col-form-label">Message</label>
-                <div class="col-sm-8">
-                    <input class="form-control" asp-for="Message" />
-                    <span asp-validation-for="Message" class="text-danger"></span>
-                </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" type="email" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
             </div>
 
-            <div class="row mb-3">
-                <div class="offset-sm-4 col-sm-8">
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="e.g. +63 912 345 6789" />
+                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Message" class="form-label">Message</label>
+                <textarea asp-for="Message" class="form-control" rows="5" placeholder="Type your message here..."></textarea>
+                <span asp-validation-for="Message" class="text-danger small"></span>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-send-fill"></i> Submit
+                </button>
             </div>
         </form>
     </div>

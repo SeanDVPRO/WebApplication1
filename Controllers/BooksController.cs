@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Security.Claims;
@@ -19,17 +20,31 @@ namespace WebApplication1.Controllers
             _auditService = auditService;
         }
 
-        public async Task<IActionResult> Index()
+        private void PopulateDropdowns()
         {
-            return View(await _context.Books.ToListAsync());
+            ViewBag.Genres = new List<string> { "Fiction", "Non-Fiction", "Mystery", "Sci-Fi", "Biography" };
+            ViewBag.Years = Enumerable.Range(2000, DateTime.Now.Year - 1999).Reverse().ToList();
         }
 
+        public async Task<IActionResult> Index()
+        {
+            ViewBag.IsGuest = !User.Identity.IsAuthenticated;
+            var books = User.Identity.IsAuthenticated
+                ? await _context.Books.ToListAsync()
+                : new List<Book>();
+
+            return View(books);
+        }
+
+        [Authorize]
         public IActionResult Create()
         {
+            PopulateDropdowns();
             return View();
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Book book)
         {
@@ -47,9 +62,12 @@ namespace WebApplication1.Controllers
                 TempData["BookCreated"] = true;
                 return RedirectToAction("Index");
             }
+
+            PopulateDropdowns();
             return View(book);
         }
 
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
             var book = await _context.Books.FindAsync(id);
@@ -57,10 +75,13 @@ namespace WebApplication1.Controllers
             {
                 return NotFound();
             }
+
+            PopulateDropdowns();
             return View(book);
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Book book)
         {
@@ -81,9 +102,12 @@ namespace WebApplication1.Controllers
                 TempData["BookUpdated"] = true;
                 return RedirectToAction("Index");
             }
+
+            PopulateDropdowns();
             return View(book);
         }
 
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var book = await _context.Books.FindAsync(id);
@@ -95,6 +119,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

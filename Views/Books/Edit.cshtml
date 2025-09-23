@@ -24,15 +24,22 @@
 
     <div class="mb-3">
         <label asp-for="Genre" class="form-label"></label>
-        <input asp-for="Genre" class="form-control" />
+        <select asp-for="Genre" class="form-control" asp-items="@(new SelectList(ViewBag.Genres))">
+            <option value="">-- Select Genre --</option>
+        </select>
         <span asp-validation-for="Genre" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="YearPublished" class="form-label"></label>
-        <input asp-for="YearPublished" class="form-control" type="number" />
+        <div class="scroll-wrapper">
+            <select asp-for="YearPublished" class="form-control year-dropdown" asp-items="@(new SelectList(ViewBag.Years))">
+                <option value="">-- Select Year --</option>
+            </select>
+        </div>
         <span asp-validation-for="YearPublished" class="text-danger"></span>
     </div>
+
 
     <button type="submit" class="btn btn-warning">Update</button>
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>

@@ -1,38 +1,48 @@
 ﻿@model IEnumerable<WebApplication1.Models.Book>
 @{
     ViewData["Title"] = "Books";
+    var isGuest = ViewBag.IsGuest != null && (bool)ViewBag.IsGuest;
 }
 
 <h2 class="mb-4">Book List</h2>
 
-<a asp-action="Create" class="btn btn-primary mb-3">Add New Book</a>
+@if (isGuest)
+{
+    <div class="alert alert-warning text-center">
+        <strong>Please log in</strong> to view the book list and manage entries.
+    </div>
+}
+else
+{
+    <a asp-action="Create" class="btn btn-primary mb-3">Add New Book</a>
 
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Genre</th>
-            <th>Year</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var book in Model)
-        {
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
             <tr>
-                <td>@book.Title</td>
-                <td>@book.Author</td>
-                <td>@book.Genre</td>
-                <td>@book.YearPublished</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-warning">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@book.Id" class="btn btn-sm btn-danger">Delete</a>
-                </td>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Genre</th>
+                <th>Year</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var book in Model)
+            {
+                <tr>
+                    <td>@book.Title</td>
+                    <td>@book.Author</td>
+                    <td>@book.Genre</td>
+                    <td>@book.YearPublished</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@book.Id" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @section Scripts {
     @if (TempData["BookCreated"] != null)

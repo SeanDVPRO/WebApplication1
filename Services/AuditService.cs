@@ -31,8 +31,6 @@ namespace WebApplication1.Services
             _context.AuditTrails.Add(audit);
             await _context.SaveChangesAsync();
         }
-        
-        // Usage example - moved inside a method
         public async Task CreateBookAsync(Book book)
         {
             await LogAsync(

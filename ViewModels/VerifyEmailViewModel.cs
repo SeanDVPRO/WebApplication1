@@ -6,6 +6,6 @@ namespace WebApplication1.ViewModels
     {
         [Required(ErrorMessage = "Email is required.")]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
     }
 }
