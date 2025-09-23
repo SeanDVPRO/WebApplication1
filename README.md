@@ -29,7 +29,7 @@
 <p align="left">
 I'm Sean from Cainta Rizal, Philippines.<br><br>
 - 🎮 I’m currently developing games on Roblox using Luau<br>
-- 📚 I'm learning ASP.NET Core and <br>
+- 📚 I'm learning ASP.NET Core <br>
 - 📚 I'm currently mastering Git workflows and GitHub collaboration for clean version control and team sync <br>
 - ⚡ In my free time I refactor dashboards, explore new tools, and polish UI/UX details
 </p>
