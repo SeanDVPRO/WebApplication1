@@ -10,9 +10,10 @@ namespace WebApplication1.Data
         {
         }
 
-        public DbSet<Book> Books { get; set; }
-        public DbSet<AuditTrail> AuditTrails { get; set; }
-        public DbSet<ContactMessage> ContactMessages { get; set; }
+        public DbSet<Book> Books { get; set; } = null!;
+        public DbSet<AuditTrail> AuditTrails { get; set; } = null!;
+        public DbSet<ContactMessage> ContactMessages { get; set; } = null!;
+        public DbSet<ShortenedUrl> ShortenedUrls { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -21,6 +22,7 @@ namespace WebApplication1.Data
             builder.Entity<Book>().ToTable("Books");
             builder.Entity<AuditTrail>().ToTable("AuditTrails");
             builder.Entity<ContactMessage>().ToTable("ContactMessages");
+            builder.Entity<ShortenedUrl>().ToTable("ShortenedUrls");
         }
     }
 }

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Services;
@@ -28,8 +27,8 @@ namespace WebApplication1.Controllers
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.IsGuest = !User.Identity.IsAuthenticated;
-            var books = User.Identity.IsAuthenticated
+            ViewBag.IsGuest = !(User.Identity?.IsAuthenticated ?? false);
+            var books = (User.Identity?.IsAuthenticated ?? false)
                 ? await _context.Books.ToListAsync()
                 : new List<Book>();
 
@@ -94,7 +93,7 @@ namespace WebApplication1.Controllers
 
                 await _auditService.LogAsync(
                     action: "Edit Book",
-                    oldValue: JsonConvert.SerializeObject(oldBook),
+                    oldValue: oldBook != null ? JsonConvert.SerializeObject(oldBook) : null,
                     newValue: JsonConvert.SerializeObject(book),
                     description: $"Book '{book.Title}' updated."
                 );

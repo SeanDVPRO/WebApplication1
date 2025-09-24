@@ -26,24 +26,57 @@
     <div class="layout-wrapper">
         <nav class="sidebar">
             <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">🏠 Home</a></li>
-                <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Privacy">🔒 Privacy</a></li>
-                <li class="nav-item"><a class="nav-link" asp-controller="Contact" asp-action="Index">📞 Contact Us</a></li>
-                <li class="nav-item"><a class="nav-link" asp-controller="Books" asp-action="Index">📚 Books</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index">
+                        <span class="icon">🏠</span>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Privacy">
+                        <span class="icon">🔒</span>
+                        <span>Privacy</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Contact" asp-action="Index">
+                        <span class="icon">📞</span>
+                        <span>Contact Us</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Books" asp-action="Index">
+                        <span class="icon">📚</span>
+                        <span>Books</span>
+                    </a>
+                </li>
 
-                @if (User.Identity.IsAuthenticated)
+                @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <li class="nav-item"><a class="nav-link" asp-page="/AuditTrail/Index">📝 Audit Logs</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/AuditTrail/Index">
+                            <span class="icon">📝</span>
+                            <span>Audit Logs</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="nav-link">🚪 Logout</button>
+                            <button type="submit" class="nav-link">
+                                <span class="icon">🚪</span>
+                                <span>Logout</span>
+                            </button>
                         </form>
                     </li>
                 }
                 else
                 {
-                    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">🔐 Login</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Account" asp-action="Login">
+                            <span class="icon">🔐</span>
+                            <span>Login</span>
+                        </a>
+                    </li>
                 }
             </ul>
         </nav>
@@ -72,7 +105,7 @@
         <script>
             Swal.fire({
                 title: 'Welcome!',
-                text: '@TempData["LoginSuccess"]',
+                text: '@System.Net.WebUtility.HtmlEncode(TempData["LoginSuccess"]?.ToString() ?? "")',
                 icon: 'success'
             });
         </script>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -6,11 +6,12 @@
     <title>@ViewData["Title"] - UsersApp</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     @RenderBody()
 
-    @if (User.Identity.IsAuthenticated)
+    @if (User?.Identity?.IsAuthenticated == true)
     {
         <div class="text-center mt-4">
             <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary">View Books</a>

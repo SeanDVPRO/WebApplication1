@@ -81,7 +81,6 @@ body {
             text-decoration: underline;
         }
 
-/* Content area shift */
 .content-area {
     flex-grow: 1;
     padding: 2rem;
@@ -93,7 +92,6 @@ body.sidebar-collapsed .content-area {
     margin-left: 60px;
 }
 
-/* Toggle button styling */
 #sidebarToggle {
     background: none;
     border: none;
@@ -102,7 +100,6 @@ body.sidebar-collapsed .content-area {
     margin-right: 1rem;
 }
 
-/* Scrollable YearPublished dropdown */
 select.year-dropdown {
     max-height: 200px;
     overflow-y: auto;

@@ -26,7 +26,6 @@ namespace WebApplication1.Controllers
                 return View(model);
             }
 
-            // Simulate storing contact data
             ViewBag.SuccessMessage = "Your message has been sent successfully!";
             ModelState.Clear();
             return View(new ContactDto());

@@ -11,12 +11,9 @@ document.addEventListener("DOMContentLoaded", function () {
         toggleBtn.addEventListener("click", function () {
             sidebar.classList.toggle("collapsed");
             body.classList.toggle("sidebar-collapsed");
-
-            // Optional: persist state
             localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
         });
 
-        // Restore state on load
         const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
         if (isCollapsed) {
             sidebar.classList.add("collapsed");

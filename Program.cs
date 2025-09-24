@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
@@ -37,6 +37,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<AuditService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IUrlShorteningService, UrlShorteningService>();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -57,15 +59,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 app.MapRazorPages();
 app.Run();
-
-async Task LogBookCreation(AuditService _auditService, Book book)
-{
-    await _auditService.LogAsync(
-        action: "Create Book",
-        newValue: JsonConvert.SerializeObject(book),
-        description: $"Book '{book.Title}' created."
-    );
-}

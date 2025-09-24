@@ -1,22 +1,27 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
 using WebApplication1.Services;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace WebApplication1.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly SignInManager<Users> signInManager;
-        private readonly UserManager<Users> userManager;
+        private readonly SignInManager<Users> _signInManager;
+        private readonly UserManager<Users> _userManager;
         private readonly AuditService _auditService;
+        private readonly IEmailService _emailService;
 
-        public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager, AuditService auditService)
+        public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager, AuditService auditService, IEmailService emailService)
         {
-            this.signInManager = signInManager;
-            this.userManager = userManager;
+            _signInManager = signInManager;
+            _userManager = userManager;
             _auditService = auditService;
+            _emailService = emailService;
         }
 
         public IActionResult Login()
@@ -29,42 +34,45 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await userManager.FindByEmailAsync(model.Email);
-
+                var user = await _userManager.FindByEmailAsync(model.Email ?? "");
+                
                 if (user == null)
                 {
-                    TempData["LoginError"] = "Account not registered.";
+                    TempData["LoginError"] = "This email is not registered. Please create an account first.";
+                    TempData["UnregisteredEmail"] = model.Email;
                     return View(model);
                 }
 
-                var result = await signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, false);
+                if (!user.IsEmailVerified)
+                {
+                    TempData["LoginError"] = "Please verify your email address before logging in.";
+                    TempData["UnverifiedEmail"] = user.Email;
+                    return View(model);
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(model.Email ?? "", model.Password ?? "", model.RememberMe, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
                     await _auditService.LogAsync(
                         action: "User Login",
-                        description: $"User '{model.Email}' logged in."
+                        description: $"User '{user.Email}' logged in successfully."
                     );
 
-                    TempData["LoginSuccess"] = $"Welcome back, {user.FullName}!";
+                    TempData["LoginSuccess"] = $"Welcome back, {user.FullName}! You have successfully logged in.";
                     return RedirectToAction("Index", "Home");
-                }
-                else if (result.IsLockedOut)
-                {
-                    TempData["LoginError"] = "Your account is locked.";
-                }
-                else if (result.IsNotAllowed)
-                {
-                    TempData["LoginError"] = "Your account is not allowed to log in.";
                 }
                 else
                 {
-                    TempData["LoginError"] = "Invalid password.";
+                    await _auditService.LogAsync(
+                        action: "Failed Login Attempt",
+                        description: $"Failed login attempt for user '{user.Email}' - incorrect password."
+                    );
+
+                    TempData["LoginError"] = "Incorrect password. Please try again.";
+                    return View(model);
                 }
-
-                return View(model);
             }
-
             return View(model);
         }
 
@@ -73,24 +81,156 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+        public IActionResult EmailVerificationPending()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VerifyEmail(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                TempData["VerificationError"] = "Invalid verification link.";
+                return RedirectToAction("EmailVerificationError");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                TempData["VerificationError"] = "User not found.";
+                return RedirectToAction("EmailVerificationError");
+            }
+
+            if (user.IsEmailVerified)
+            {
+                TempData["VerificationMessage"] = "Email is already verified.";
+                return RedirectToAction("EmailVerificationSuccess");
+            }
+
+            if (user.EmailVerificationToken != token)
+            {
+                TempData["VerificationError"] = "Invalid verification token.";
+                return RedirectToAction("EmailVerificationError");
+            }
+
+            if (user.EmailVerificationTokenExpiry < DateTime.UtcNow)
+            {
+                TempData["VerificationError"] = "Verification token has expired. Please request a new verification email.";
+                return RedirectToAction("EmailVerificationError");
+            }
+
+            user.IsEmailVerified = true;
+            user.EmailVerificationToken = null;
+            user.EmailVerificationTokenExpiry = null;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                await _auditService.LogAsync(
+                    action: "Email Verification",
+                    description: $"User '{user.Email}' verified their email address."
+                );
+
+                TempData["VerificationSuccess"] = true;
+                return RedirectToAction("EmailVerificationSuccess");
+            }
+            else
+            {
+                TempData["VerificationError"] = "Failed to verify email. Please try again.";
+                return RedirectToAction("EmailVerificationError");
+            }
+        }
+
+        public IActionResult EmailVerificationSuccess()
+        {
+            return View();
+        }
+
+        public IActionResult EmailVerificationError()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResendVerificationEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["ResendError"] = "Email address is required.";
+                return RedirectToAction("EmailVerificationPending");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                TempData["ResendError"] = "User not found.";
+                return RedirectToAction("EmailVerificationPending");
+            }
+
+            if (user.IsEmailVerified)
+            {
+                TempData["ResendMessage"] = "Email is already verified.";
+                return RedirectToAction("EmailVerificationPending");
+            }
+
+            user.EmailVerificationToken = Guid.NewGuid().ToString();
+            user.EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+
+                var verificationLink = Url.Action("VerifyEmail", "Account",
+                    new { email = user.Email, token = user.EmailVerificationToken },
+                    Request.Scheme);
+
+                await _emailService.SendEmailVerificationAsync(user.Email!, verificationLink!, user.FullName);
+
+                TempData["ResendSuccess"] = "Verification email has been resent.";
+            }
+            else
+            {
+                TempData["ResendError"] = "Failed to resend verification email. Please try again.";
+            }
+
+            return RedirectToAction("EmailVerificationPending");
+        }
+
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
-                Users users = new Users
+                var users = new Users
                 {
-                    FullName = model.Name,
-                    Email = model.Email,
-                    UserName = model.Email,
+                    FullName = model.Name ?? "",
+                    Email = model.Email ?? "",
+                    UserName = model.Email ?? "",
+                    IsEmailVerified = false,
+                    EmailVerificationToken = Guid.NewGuid().ToString(),
+                    EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
                 };
 
-                var result = await userManager.CreateAsync(users, model.Password);
+                var result = await _userManager.CreateAsync(users, model.Password ?? "");
 
                 if (result.Succeeded)
                 {
+                    var verificationLink = Url.Action("VerifyEmail", "Account", 
+                        new { email = users.Email, token = users.EmailVerificationToken }, 
+                        Request.Scheme);
+
+                    await _emailService.SendEmailVerificationAsync(users.Email!, verificationLink!, users.FullName);
+
+                    await _auditService.LogAsync(
+                        action: "User Registration",
+                        description: $"User '{users.Email}' registered and verification email sent."
+                    );
+
                     TempData["RegisterSuccess"] = true;
-                    return RedirectToAction("Login", "Account");
+                    TempData["VerificationEmailSent"] = true;
+                    TempData["UserEmail"] = users.Email;
+                    return View(model);
                 }
                 else
                 {
@@ -111,28 +251,60 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await userManager.FindByNameAsync(model.Email);
+                var user = await _userManager.FindByEmailAsync(model.Email ?? "");
 
                 if (user == null)
                 {
-                    ModelState.AddModelError("", "Something is wrong!");
+                    TempData["EmailSent"] = true;
                     return View(model);
                 }
-                else
+
+                try
                 {
-                    return RedirectToAction("ChangePassword", "Account", new { username = user.UserName });
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    
+                    var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+                    var resetLink = Url.Action("ChangePassword", "Account", 
+                        new { email = user.Email, token = encodedToken }, 
+                        Request.Scheme);
+
+                    await _emailService.SendPasswordResetEmailAsync(user.Email!, resetLink!, user.FullName ?? user.UserName!);
+
+                    await _auditService.LogAsync(
+                        action: "Password Reset Request",
+                        description: $"Password reset email sent to '{user.Email}'"
+                    );
+
+                    TempData["EmailSent"] = true;
+                    return View(model);
+                }
+                catch (Exception ex)
+                {
+                    await _auditService.LogAsync(
+                        action: "Password Reset Email Failed",
+                        description: $"Failed to send password reset email to '{model.Email}'. Error: {ex.Message}"
+                    );
+                    
+                    TempData["EmailSent"] = true;
+                    return View(model);
                 }
             }
             return View(model);
         }
 
-        public IActionResult ChangePassword(string username)
+        public IActionResult ChangePassword(string? email, string? token)
         {
-            if (string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
             {
                 return RedirectToAction("VerifyEmail", "Account");
             }
-            return View(new ChangePasswordViewModel { Email = username });
+            
+            return View(new ChangePasswordViewModel 
+            { 
+                Email = email, 
+                Token = token 
+            });
         }
 
         [HttpPost]
@@ -140,23 +312,43 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await userManager.FindByNameAsync(model.Email);
-                if (user != null)
+                var user = await _userManager.FindByEmailAsync(model.Email ?? "");
+                if (user == null)
                 {
-                    var result = await userManager.RemovePasswordAsync(user);
+                    TempData["PasswordError"] = "Invalid request. Please try again.";
+                    return View(model);
+                }
+
+                if (string.IsNullOrEmpty(model.Token))
+                {
+                    TempData["PasswordError"] = "Invalid reset token. Please request a new password reset.";
+                    return View(model);
+                }
+
+                try
+                {
+                    var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
+                    
+                    var passwordHasher = new PasswordHasher<Users>();
+                    var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, model.NewPassword ?? "");
+                    
+                    if (verificationResult == PasswordVerificationResult.Success)
+                    {
+                        TempData["PasswordError"] = "New password cannot be the same as your current password. Please choose a different password.";
+                        return View(model);
+                    }
+                    
+                    var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.NewPassword ?? "");
+                    
                     if (result.Succeeded)
                     {
-                        result = await userManager.AddPasswordAsync(user, model.NewPassword);
-                        if (result.Succeeded)
-                        {
-                            TempData["PasswordChanged"] = true;
-                            return RedirectToAction("Login", "Account");
-                        }
-                        else
-                        {
-                            TempData["PasswordError"] = string.Join("||", result.Errors.Select(e => e.Description));
-                            return View(model);
-                        }
+                        await _auditService.LogAsync(
+                            action: "Password Reset Completed",
+                            description: $"Password successfully reset for user '{user.Email}'"
+                        );
+
+                        TempData["PasswordChanged"] = true;
+                        return RedirectToAction("Login", "Account");
                     }
                     else
                     {
@@ -164,14 +356,19 @@ namespace WebApplication1.Controllers
                         return View(model);
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["PasswordError"] = "Email not found!";
+                    await _auditService.LogAsync(
+                        action: "Password Reset Failed",
+                        description: $"Password reset failed for user '{model.Email}'. Error: {ex.Message}"
+                    );
+                    
+                    TempData["PasswordError"] = "Invalid or expired reset token. Please request a new password reset.";
                     return View(model);
                 }
             }
 
-            TempData["PasswordError"] = "Something went wrong. Try again.";
+            TempData["PasswordError"] = "Please correct the errors and try again.";
             return View(model);
         }
 
@@ -186,7 +383,7 @@ namespace WebApplication1.Controllers
                 description: $"User '{userId}' logged out."
             );
 
-            await signInManager.SignOutAsync();
+            await _signInManager.SignOutAsync();
             TempData["LogoutSuccess"] = true;
             return RedirectToAction("LoggedOut");
         }
@@ -194,6 +391,20 @@ namespace WebApplication1.Controllers
         public IActionResult LoggedOut()
         {
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckEmailExists([FromBody] string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return Json(new { exists = false, message = "Email is required" });
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            bool exists = user != null;
+
+            return Json(new { exists = exists, message = exists ? "This email is already registered" : "Email is available" });
         }
     }
 }
