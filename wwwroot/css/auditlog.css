@@ -143,20 +143,17 @@ z.audit-header {
     text-align: center;
 }
 
-/* Responsive table styling */
 .table-responsive {
     width: 100% !important;
     max-width: 100% !important;
 }
 
-/* Ensure the audit page content stretches to full width */
 .audit-container {
     width: 100%;
     max-width: 100%;
     padding: 0 15px;
 }
 
-/* Make table cells more flexible */
 .audit-table td {
     max-width: 0;
     overflow: hidden;
@@ -164,7 +161,7 @@ z.audit-header {
     white-space: nowrap;
 }
 
-.audit-table td:nth-child(5) { /* Description column */
+.audit-table td:nth-child(5) {
     white-space: normal;
     word-break: break-word;
 }
