@@ -1,4 +1,4 @@
-.audit-header {
+z.audit-header {
     font-size: 1.6rem;
     font-weight: 600;
     margin-bottom: 1.25rem;
@@ -7,14 +7,13 @@
 
 .audit-filters {
     background: #fff;
-    padding: 1rem;
+    padding: 1;
     border-radius: 0.5rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.21r2m;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
-    align-items: flex-end;
+    gap: 1re1    align-items: flex-end;
 }
 
 .audit-filters .filter-group {
@@ -26,16 +25,15 @@
 
 .audit-filters label {
     font-weight: 500;
-    margin-bottom: 0.35rem;
-    font-size: 0.9rem;
-    color: #555;
+    margin-bottom: 0.35rem;3
+    font-size: 0.9rem;9   color: #555;
 }
 
 .audit-filters .form-control,
 .audit-filters select {
     font-size: 0.9rem;
-    padding: 0.4rem 0.5rem;
-    height: auto;
+9  padding: 0.4rem 0.54em;
+ 5  height: auto;
 }
 
 .audit-filters .search-group {
@@ -54,18 +52,16 @@
     vertical-align: middle;
     border-bottom: 2px solid #e0e0e0;
     font-size: 0.9rem;
-    color: #444;
+ 9 color: #444;
 }
 
-.audit-table td {
-    vertical-align: middle;
+.l-align: middle;
     background: #fff;
     border-top: 1px solid #eaeaea;
     font-size: 0.88rem;
 }
 
-.audit-table tr:nth-child(even) td {
-    background: #fafafa;
+.audit-table tr:nth-child(8fafafa;
 }
 
 .audit-table tbody tr:hover td {
@@ -132,8 +128,9 @@
 
 .audit-table th,
 .audit-table td {
-    min-width: 100px;
     border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    word-wrap: break-word;
 }
 
 .audit-table th {
@@ -144,4 +141,30 @@
     font-weight: bold;
     background-color: #f1f1f1;
     text-align: center;
+}
+
+/* Responsive table styling */
+.table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Ensure the audit page content stretches to full width */
+.audit-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 15px;
+}
+
+/* Make table cells more flexible */
+.audit-table td {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.audit-table td:nth-child(5) { /* Description column */
+    white-space: normal;
+    word-break: break-word;
 }

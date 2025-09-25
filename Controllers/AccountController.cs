@@ -6,6 +6,7 @@ using WebApplication1.Services;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using WebApplication1.Attributes;
 
 namespace WebApplication1.Controllers
 {
@@ -24,12 +25,14 @@ namespace WebApplication1.Controllers
             _emailService = emailService;
         }
 
+        [AllowAnonymousSession]
         public IActionResult Login()
         {
             return View();
         }
 
         [HttpPost]
+        [AllowAnonymousSession]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
@@ -76,17 +79,20 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
+        [AllowAnonymousSession]
         public IActionResult Register()
         {
             return View();
         }
 
+        [AllowAnonymousSession]
         public IActionResult EmailVerificationPending()
         {
             return View();
         }
 
         [HttpGet]
+        [AllowAnonymousSession]
         public async Task<IActionResult> VerifyEmail(string email, string token)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
@@ -142,17 +148,20 @@ namespace WebApplication1.Controllers
             }
         }
 
+        [AllowAnonymousSession]
         public IActionResult EmailVerificationSuccess()
         {
             return View();
         }
 
+        [AllowAnonymousSession]
         public IActionResult EmailVerificationError()
         {
             return View();
         }
 
         [HttpPost]
+        [AllowAnonymousSession]
         public async Task<IActionResult> ResendVerificationEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -198,6 +207,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymousSession]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
@@ -241,13 +251,15 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
-        public IActionResult VerifyEmail()
+        [AllowAnonymousSession]
+        public IActionResult ForgotPassword()
         {
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
+        [AllowAnonymousSession]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -255,7 +267,7 @@ namespace WebApplication1.Controllers
 
                 if (user == null)
                 {
-                    TempData["EmailSent"] = true;
+                    TempData["EmailError"] = "This email address is not registered. Please check your email or create an account first.";
                     return View(model);
                 }
 
@@ -293,11 +305,67 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
+        [AllowAnonymousSession]
+        public IActionResult VerifyEmail()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymousSession]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email ?? "");
+
+                if (user == null)
+                {
+                    TempData["VerificationError"] = "User not found.";
+                    return RedirectToAction("EmailVerificationError");
+                }
+
+                if (user.IsEmailVerified)
+                {
+                    TempData["VerificationMessage"] = "Email is already verified.";
+                    return RedirectToAction("EmailVerificationSuccess");
+                }
+
+                user.EmailVerificationToken = Guid.NewGuid().ToString();
+                user.EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
+
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    var verificationLink = Url.Action("VerifyEmail", "Account",
+                        new { email = user.Email, token = user.EmailVerificationToken },
+                        Request.Scheme);
+
+                    await _emailService.SendEmailVerificationAsync(user.Email!, verificationLink!, user.FullName);
+
+                    await _auditService.LogAsync(
+                        action: "Email Verification Resent",
+                        description: $"Email verification resent to '{user.Email}'"
+                    );
+
+                    TempData["VerificationEmailSent"] = true;
+                    return RedirectToAction("EmailVerificationPending");
+                }
+                else
+                {
+                    TempData["VerificationError"] = "Failed to resend verification email. Please try again.";
+                    return RedirectToAction("EmailVerificationError");
+                }
+            }
+            return View(model);
+        }
+
+        [AllowAnonymousSession]
         public IActionResult ChangePassword(string? email, string? token)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
             {
-                return RedirectToAction("VerifyEmail", "Account");
+                return RedirectToAction("ForgotPassword", "Account");
             }
             
             return View(new ChangePasswordViewModel 
@@ -308,6 +376,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymousSession]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
             if (ModelState.IsValid)
@@ -348,7 +417,7 @@ namespace WebApplication1.Controllers
                         );
 
                         TempData["PasswordChanged"] = true;
-                        return RedirectToAction("Login", "Account");
+                        return View(model);
                     }
                     else
                     {
@@ -383,17 +452,30 @@ namespace WebApplication1.Controllers
                 description: $"User '{userId}' logged out."
             );
 
+            HttpContext.Session.Clear();
+            
             await _signInManager.SignOutAsync();
+            
+            foreach (var cookie in Request.Cookies.Keys)
+            {
+                if (cookie.StartsWith(".AspNetCore") || cookie.Contains("Identity") || cookie.Contains("Auth"))
+                {
+                    Response.Cookies.Delete(cookie);
+                }
+            }
+            
             TempData["LogoutSuccess"] = true;
             return RedirectToAction("LoggedOut");
         }
 
+        [AllowAnonymousSession]
         public IActionResult LoggedOut()
         {
             return View();
         }
 
         [HttpPost]
+        [AllowAnonymousSession]
         public async Task<IActionResult> CheckEmailExists([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))

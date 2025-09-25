@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Attributes;
 
 namespace WebApplication1.Pages.AuditTrail
 {
+    [SessionAuthorization]
     public class IndexModel : PageModel
     {
         private readonly AppDbContext _context;

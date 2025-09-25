@@ -14,6 +14,8 @@ namespace WebApplication1.Models
 
         public string? Genre { get; set; }
 
-        public int YearPublished { get; set; }
+        [Display(Name = "Year Published")]
+        [DataType(DataType.Date)]
+        public DateTime? YearPublished { get; set; }
     }
 }

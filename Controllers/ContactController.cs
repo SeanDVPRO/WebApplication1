@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
+using WebApplication1.Attributes;
 
 namespace WebApplication1.Controllers
 {
@@ -8,6 +9,7 @@ namespace WebApplication1.Controllers
         private readonly string email = "contact@beststore.com";
         private readonly string address = "New York, Usa";
 
+        [AllowAnonymousSession]
         public IActionResult Index()
         {
             ViewData["Email Address"] = email;
@@ -16,6 +18,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymousSession]
         public IActionResult Index(ContactDto model)
         {
             ViewData["Email Address"] = email;

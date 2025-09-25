@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Services;
+using WebApplication1.Attributes;
 
 namespace WebApplication1.Controllers
 {
+    [SessionAuthorization]
     public class BooksController : Controller
     {
         private readonly AppDbContext _context;
@@ -22,7 +24,6 @@ namespace WebApplication1.Controllers
         private void PopulateDropdowns()
         {
             ViewBag.Genres = new List<string> { "Fiction", "Non-Fiction", "Mystery", "Sci-Fi", "Biography" };
-            ViewBag.Years = Enumerable.Range(2000, DateTime.Now.Year - 1999).Reverse().ToList();
         }
 
         public async Task<IActionResult> Index()
