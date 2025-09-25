@@ -63,7 +63,7 @@
                                 paddingTop: function () { return 2; },
                                 paddingBottom: function () { return 2; }
                             };
-                            doc.content[1].table.widths = ['5%', '13%', '18%', '10%', '24%', '30%'];
+                            doc.content[1].table.widths = ['3%', '12%', '15%', '8%', '52%', '10%'];
                             var body = doc.content[1].table.body;
                             for (var i = 1; i < body.length; i++) {
                                 if (body[i][5].text) {
@@ -172,14 +172,14 @@ else
     </form>
 
     <div class="table-responsive" style="width: 100%; overflow-x: auto;">
-        <table id="auditTable" class="table table-bordered table-striped audit-table align-middle" style="width:100%; min-width: 800px;">
+        <table id="auditTable" class="table table-bordered table-striped audit-table align-middle" style="width:100%;">
             <thead>
                 <tr>
-                    <th style="width: 4%; text-align:center; min-width: 50px;">No</th>
-                    <th style="width: 13%; min-width: 120px;">Date</th>
-                    <th style="width: 18%; min-width: 150px;">User</th>
-                    <th style="width: 10%; min-width: 80px;">Type</th>
-                    <th style="width: 35%; min-width: 200px;">Description</th>
+                    <th style="width: 3%; text-align:center; min-width: 40px;">No</th>
+                    <th style="width: 12%; min-width: 130px;">Date</th>
+                    <th style="width: 15%; min-width: 140px;">User</th>
+                    <th style="width: 8%; min-width: 80px;">Type</th>
+                    <th style="width: 52%; min-width: 300px;">Description</th>
                     <th style="width: 10%; text-align:center; min-width: 100px;">Changes</th>
                     <th style="display:none;">HiddenCol</th>
                 </tr>
@@ -225,4 +225,3 @@ else
         </table>
     </div>
 }
-
