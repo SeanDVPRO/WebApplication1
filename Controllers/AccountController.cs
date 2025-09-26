@@ -7,6 +7,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using WebApplication1.Attributes;
+using System.Text.Json;
 
 namespace WebApplication1.Controllers
 {
@@ -16,6 +17,9 @@ namespace WebApplication1.Controllers
         private readonly UserManager<Users> _userManager;
         private readonly AuditService _auditService;
         private readonly IEmailService _emailService;
+
+        private static readonly TimeSpan _resetInterval = TimeSpan.FromMinutes(5);
+        private static readonly int _maxRequestsPerHour = 1;
 
         public AccountController(SignInManager<Users> signInManager, UserManager<Users> userManager, AuditService auditService, IEmailService emailService)
         {
@@ -38,7 +42,7 @@ namespace WebApplication1.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email ?? "");
-                
+
                 if (user == null)
                 {
                     TempData["LoginError"] = "This email is not registered. Please create an account first.";
@@ -189,7 +193,6 @@ namespace WebApplication1.Controllers
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
-
                 var verificationLink = Url.Action("VerifyEmail", "Account",
                     new { email = user.Email, token = user.EmailVerificationToken },
                     Request.Scheme);
@@ -226,8 +229,8 @@ namespace WebApplication1.Controllers
 
                 if (result.Succeeded)
                 {
-                    var verificationLink = Url.Action("VerifyEmail", "Account", 
-                        new { email = users.Email, token = users.EmailVerificationToken }, 
+                    var verificationLink = Url.Action("VerifyEmail", "Account",
+                        new { email = users.Email, token = users.EmailVerificationToken },
                         Request.Scheme);
 
                     await _emailService.SendEmailVerificationAsync(users.Email!, verificationLink!, users.FullName);
@@ -263,10 +266,19 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
+                var rateLimitResult = await CheckRateLimitAsync(model.Email!);
+                if (!rateLimitResult.Allowed)
+                {
+                    TempData["EmailError"] = rateLimitResult.Message;
+                    return View(model);
+                }
+
                 var user = await _userManager.FindByEmailAsync(model.Email ?? "");
 
                 if (user == null)
                 {
+                    await TrackRateLimitAttemptAsync(model.Email!);
+
                     TempData["EmailError"] = "This email address is not registered. Please check your email or create an account first.";
                     return View(model);
                 }
@@ -274,14 +286,16 @@ namespace WebApplication1.Controllers
                 try
                 {
                     var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                    
+
                     var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-                    var resetLink = Url.Action("ChangePassword", "Account", 
-                        new { email = user.Email, token = encodedToken }, 
+                    var resetLink = Url.Action("ChangePassword", "Account",
+                        new { email = user.Email, token = encodedToken },
                         Request.Scheme);
 
                     await _emailService.SendPasswordResetEmailAsync(user.Email!, resetLink!, user.FullName ?? user.UserName!);
+
+                    await TrackRateLimitAttemptAsync(model.Email!);
 
                     await _auditService.LogAsync(
                         action: "Password Reset Request",
@@ -297,7 +311,7 @@ namespace WebApplication1.Controllers
                         action: "Password Reset Email Failed",
                         description: $"Failed to send password reset email to '{model.Email}'. Error: {ex.Message}"
                     );
-                    
+
                     TempData["EmailSent"] = true;
                     return View(model);
                 }
@@ -367,11 +381,11 @@ namespace WebApplication1.Controllers
             {
                 return RedirectToAction("ForgotPassword", "Account");
             }
-            
-            return View(new ChangePasswordViewModel 
-            { 
-                Email = email, 
-                Token = token 
+
+            return View(new ChangePasswordViewModel
+            {
+                Email = email,
+                Token = token
             });
         }
 
@@ -397,18 +411,18 @@ namespace WebApplication1.Controllers
                 try
                 {
                     var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
-                    
+
                     var passwordHasher = new PasswordHasher<Users>();
                     var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, model.NewPassword ?? "");
-                    
+
                     if (verificationResult == PasswordVerificationResult.Success)
                     {
                         TempData["PasswordError"] = "New password cannot be the same as your current password. Please choose a different password.";
                         return View(model);
                     }
-                    
+
                     var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.NewPassword ?? "");
-                    
+
                     if (result.Succeeded)
                     {
                         await _auditService.LogAsync(
@@ -431,7 +445,7 @@ namespace WebApplication1.Controllers
                         action: "Password Reset Failed",
                         description: $"Password reset failed for user '{model.Email}'. Error: {ex.Message}"
                     );
-                    
+
                     TempData["PasswordError"] = "Invalid or expired reset token. Please request a new password reset.";
                     return View(model);
                 }
@@ -453,9 +467,9 @@ namespace WebApplication1.Controllers
             );
 
             HttpContext.Session.Clear();
-            
+
             await _signInManager.SignOutAsync();
-            
+
             foreach (var cookie in Request.Cookies.Keys)
             {
                 if (cookie.StartsWith(".AspNetCore") || cookie.Contains("Identity") || cookie.Contains("Auth"))
@@ -463,7 +477,7 @@ namespace WebApplication1.Controllers
                     Response.Cookies.Delete(cookie);
                 }
             }
-            
+
             TempData["LogoutSuccess"] = true;
             return RedirectToAction("LoggedOut");
         }
@@ -487,6 +501,103 @@ namespace WebApplication1.Controllers
             bool exists = user != null;
 
             return Json(new { exists = exists, message = exists ? "This email is already registered" : "Email is available" });
+        }
+
+        private async Task<(bool Allowed, string Message)> CheckRateLimitAsync(string email)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "rate_limits.json");
+            var directory = Path.GetDirectoryName(filePath);
+
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory!);
+
+            if (!System.IO.File.Exists(filePath))
+                return (true, string.Empty);
+
+            try
+            {
+                var json = await System.IO.File.ReadAllTextAsync(filePath);
+                var rateLimits = JsonSerializer.Deserialize<Dictionary<string, List<DateTime>>>(json) ?? new();
+
+                var cleanEmail = email.ToLowerInvariant();
+                var now = DateTime.UtcNow;
+
+                if (rateLimits.ContainsKey(cleanEmail))
+                {
+                    var attempts = rateLimits[cleanEmail];
+
+                    var recentAttempts = attempts.Where(a => (now - a) < TimeSpan.FromHours(1)).ToList();
+
+                    if (recentAttempts.Count >= _maxRequestsPerHour)
+                    {
+                        var oldestAttempt = recentAttempts.Min();
+                        var waitTime = TimeSpan.FromHours(1) - (now - oldestAttempt);
+                        return (false, $"Too many password reset attempts. Please try again in {waitTime.Minutes} minutes.");
+                    }
+
+                    if (recentAttempts.Any())
+                    {
+                        var lastAttempt = recentAttempts.Max();
+                        if ((now - lastAttempt) < _resetInterval)
+                        {
+                            var waitTime = _resetInterval - (now - lastAttempt);
+                            return (false, $"Please wait {waitTime.TotalSeconds:0} seconds before requesting another password reset.");
+                        }
+                    }
+                }
+
+                return (true, string.Empty);
+            }
+            catch (Exception)
+            {
+                return (true, string.Empty);
+            }
+        }
+
+        private async Task TrackRateLimitAttemptAsync(string email)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "rate_limits.json");
+            var directory = Path.GetDirectoryName(filePath);
+
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory!);
+
+            Dictionary<string, List<DateTime>> rateLimits = new();
+
+            if (System.IO.File.Exists(filePath))
+            {
+                try
+                {
+                    var json = await System.IO.File.ReadAllTextAsync(filePath);
+                    rateLimits = JsonSerializer.Deserialize<Dictionary<string, List<DateTime>>>(json) ?? new();
+                }
+                catch (Exception)
+                {
+                    rateLimits = new();
+                }
+            }
+
+            var cleanEmail = email.ToLowerInvariant();
+            var now = DateTime.UtcNow;
+
+            if (!rateLimits.ContainsKey(cleanEmail))
+                rateLimits[cleanEmail] = new List<DateTime>();
+
+            rateLimits[cleanEmail].Add(now);
+
+            rateLimits[cleanEmail] = rateLimits[cleanEmail]
+                .Where(a => (now - a) < TimeSpan.FromHours(2))
+                .ToList();
+
+            try
+            {
+                var jsonOutput = JsonSerializer.Serialize(rateLimits, new JsonSerializerOptions { WriteIndented = true });
+                await System.IO.File.WriteAllTextAsync(filePath, jsonOutput);
+            }
+            catch (Exception)
+            {
+                // If we can't write to the file, just continue
+            }
         }
     }
 }
