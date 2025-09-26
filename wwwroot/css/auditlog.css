@@ -1,4 +1,4 @@
-z.audit-header {
+﻿.audit-header {
     font-size: 1.6rem;
     font-weight: 600;
     margin-bottom: 1.25rem;
@@ -7,33 +7,35 @@ z.audit-header {
 
 .audit-filters {
     background: #fff;
-    padding: 1;
+    padding: 1rem;
     border-radius: 0.5rem;
-    margin-bottom: 1.21r2m;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-wrap: wrap;
-    gap: 1re1    align-items: flex-end;
+    gap: 1rem;
+    align-items: flex-end;
 }
 
 .audit-filters .filter-group {
-    display: flex;
-    flex-direction: column;
-    min-width: 150px;
-    flex: 1;
+     display: flex;
+     flex-direction: column;
+     min-width: 150px;
+     flex: 1;
 }
 
 .audit-filters label {
     font-weight: 500;
-    margin-bottom: 0.35rem;3
-    font-size: 0.9rem;9   color: #555;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+    color: #555;
 }
 
 .audit-filters .form-control,
 .audit-filters select {
     font-size: 0.9rem;
-9  padding: 0.4rem 0.54em;
- 5  height: auto;
+    padding: 0.4rem 0.54em;
+    height: auto;
 }
 
 .audit-filters .search-group {
@@ -52,16 +54,7 @@ z.audit-header {
     vertical-align: middle;
     border-bottom: 2px solid #e0e0e0;
     font-size: 0.9rem;
- 9 color: #444;
-}
-
-.l-align: middle;
-    background: #fff;
-    border-top: 1px solid #eaeaea;
-    font-size: 0.88rem;
-}
-
-.audit-table tr:nth-child(8fafafa;
+    color: #444;
 }
 
 .audit-table tbody tr:hover td {
@@ -104,7 +97,6 @@ z.audit-header {
     overflow-y: auto;
 }
 
-
 .pagination {
     margin-top: 1rem;
 }
@@ -131,10 +123,6 @@ z.audit-header {
     border: 1px solid #dee2e6;
     padding: 0.5rem;
     word-wrap: break-word;
-}
-
-.audit-table th {
-    background-color: #f8f9fa;
 }
 
 .audit-footer {

@@ -23,8 +23,8 @@
         <h4 class="mb-0">WebApplication1</h4>
     </header>
 
-    <div class="layout-wrapper" style="display: flex; overflow: hidden;">
-        <nav class="sidebar" style="position: fixed; left: 0; top: 70px; height: calc(100vh - 70px); z-index: 1000; background-color: #f8f9fa; border-right: 1px solid #dee2e6; transition: width 0.3s ease; overflow-x: hidden;">
+    <div class="layout-wrapper">
+        <nav class="sidebar">
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="Home" asp-action="Index">
@@ -81,8 +81,8 @@
             </ul>
         </nav>
 
-        <div class="content-area" style="margin-left: 250px; width: calc(100% - 250px); transition: all 0.3s ease; padding: 1.5rem; overflow-x: auto;">
-            <main role="main" class="pb-3" style="width: 100%; max-width: none;">
+        <div class="content-area">
+            <main role="main" class="pb-3">
                 @RenderBody()
             </main>
         </div>

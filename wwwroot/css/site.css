@@ -32,53 +32,53 @@ body {
     padding: 1rem;
 }
 
-    .sidebar.collapsed {
-        width: 60px;
-    }
+.sidebar.collapsed {
+    width: 60px;
+}
 
-    .sidebar .nav-link {
-        display: block;
-        padding: 0.5rem 0;
-        color: #212529;
-        text-decoration: none;
-        font-size: 1rem;
-        transition: font-size 0.3s ease;
-    }
+.sidebar .nav-link {
+    display: block;
+    padding: 0.5rem 0;
+    color: #212529;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: font-size 0.3s ease;
+}
 
-    .sidebar.collapsed .nav-link {
-        text-align: center;
-        font-size: 0;
-    }
+.sidebar.collapsed .nav-link {
+    text-align: center;
+    font-size: 0;
+}
 
-        .sidebar.collapsed .nav-link::before {
-            font-size: 1.2rem;
-            display: block;
-            margin: 0 auto;
-        }
+.sidebar.collapsed .nav-link::before {
+    font-size: 1.2rem;
+    display: block;
+    margin: 0 auto;
+}
 
-    .sidebar .nav-link:hover {
-        color: #0d6efd;
-        text-decoration: underline;
-    }
+.sidebar .nav-link:hover {
+    color: #0d6efd;
+    text-decoration: underline;
+}
 
 .logout-form {
     margin: 0;
 }
 
-    .logout-form button.nav-link {
-        background: none;
-        border: none;
-        padding: 0;
-        width: 100%;
-        text-align: left;
-        font-size: 1rem;
-        color: #212529;
-    }
+.logout-form button.nav-link {
+    background: none;
+    border: none;
+    padding: 0;
+    width: 100%;
+    text-align: left;
+    font-size: 1rem;
+    color: #212529;
+}
 
-        .logout-form button.nav-link:hover {
-            color: #0d6efd;
-            text-decoration: underline;
-        }
+.logout-form button.nav-link:hover {
+    color: #0d6efd;
+    text-decoration: underline;
+}
 
 .content-area {
     flex-grow: 1;

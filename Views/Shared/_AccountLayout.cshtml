@@ -11,12 +11,6 @@
 <body>
     @RenderBody()
 
-    @if (User?.Identity?.IsAuthenticated == true)
-    {
-        <div class="text-center mt-4">
-            <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary">View Books</a>
-        </div>
-    }
 
     <script src="~/js/lib/jquery/jquery.min.js"></script>
     <script src="~/js/lib/bootstrap/bootstrap.bundle.min.js"></script>
