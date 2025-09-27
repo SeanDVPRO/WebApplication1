@@ -1,0 +1,89 @@
+@{
+    ViewData["Title"] = "Email Verification Error";
+}
+
+<link rel="stylesheet" href="~/css/email-verification.css" />
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4">
+                        <div class="error-animation">
+                            <i class="fas fa-exclamation-triangle text-danger" style="font-size: 5rem;"></i>
+                        </div>
+                    </div>
+                    
+                    <h2 class="card-title text-danger mb-4">Verification Failed</h2>
+                    
+                    <div class="alert alert-danger border-0">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-times-circle me-2"></i>
+                            Oops! Something went wrong
+                        </h5>
+                        @if (TempData["VerificationError"] != null)
+                        {
+                            <p class="mb-0">@TempData["VerificationError"]</p>
+                        }
+                        else
+                        {
+                            <p class="mb-0">We couldn't verify your email address. This could be due to an invalid or expired verification link.</p>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="text-muted">Common reasons for verification failure:</h6>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2">
+                                <i class="fas fa-clock text-warning me-2"></i>
+                                The verification link has expired (links expire after 24 hours)
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-link text-warning me-2"></i>
+                                The verification link is invalid or corrupted
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-double text-warning me-2"></i>
+                                The email has already been verified
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-user-slash text-warning me-2"></i>
+                                The user account was not found
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="border-top pt-4">
+                        <p class="text-muted mb-3">What can you do?</p>
+                        
+                        <form method="post" asp-action="ResendVerificationEmail" class="mb-3">
+                            <div class="input-group mb-3">
+                                <input type="email" name="email" class="form-control" placeholder="Enter your email address" required>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-paper-plane me-1"></i>
+                                    Request New Link
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="d-grid gap-2">
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Register New Account
+                            </a>
+                            <a href="@Url.Action("Login", "Account")" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Try to Login
+                            </a>
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i>
+                                Go to Homepage
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

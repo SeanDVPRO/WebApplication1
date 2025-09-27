@@ -1,0 +1,249 @@
+@using WebApplication1.ViewModels;
+@model RegisterViewModel;
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Create Account 🚀</h2>
+            <p class="text-muted">Join us today and get started</p>
+        </div>
+
+        <form asp-action="Register" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Name" class="form-label">Full Name</label>
+                <div class="input-group">
+                    <span class="input-group-text">👤</span>
+                    <input asp-for="Name" class="form-control" placeholder="Enter your full name" autofocus>
+                </div>
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="form-label">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text">📧</span>
+                    <input asp-for="Email" class="form-control" placeholder="Enter your email" id="emailInput">
+                    <span class="input-group-text email-validation-indicator" id="emailIndicator" style="display: none;">
+                        <span class="spinner-border spinner-border-sm" role="status" id="emailSpinner" style="display: none;"></span>
+                        <span id="emailIcon"></span>
+                    </span>
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+                <div class="form-text" id="emailFeedback"></div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password" class="form-label">Password</label>
+                <div class="input-group">
+                      <span class="input-group-text">🔒</span>
+                    <input asp-for="Password" class="form-control"
+                           type="password" placeholder="Create a password" minlength="8" maxlength="40">
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+                <div class="form-text password-hint"></div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                <div class="input-group">
+                    <span class="input-group-text">✅</span>
+                    <input asp-for="ConfirmPassword" class="form-control"
+                           type="password" placeholder="Confirm your password" minlength="8" maxlength="40">
+                </div>
+                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2 mb-3">
+                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                Create Account
+            </button>
+
+            <div class="text-center">
+                <span class="text-muted">Already have an account? </span>
+                <a asp-controller="Account" asp-action="Login" class="text-decoration-none fw-bold">Sign In</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="tempData"
+     data-register-success="@TempData["RegisterSuccess"]"
+     data-register-error="@TempData["RegisterError"]"
+     data-login-url="@Url.Action("Login", "Account")">
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailParam = urlParams.get('email');
+            if (emailParam) {
+                document.getElementById('emailInput').value = emailParam;
+            }
+
+            let emailTimeout;
+            const emailInput = document.getElementById('emailInput');
+            const emailIndicator = document.getElementById('emailIndicator');
+            const emailSpinner = document.getElementById('emailSpinner');
+            const emailIcon = document.getElementById('emailIcon');
+            const emailFeedback = document.getElementById('emailFeedback');
+
+            emailInput.addEventListener('input', function() {
+                const email = this.value.trim();
+                
+                clearTimeout(emailTimeout);
+                
+                emailIndicator.style.display = 'none';
+                emailFeedback.textContent = '';
+                emailFeedback.className = 'form-text';
+                
+                if (email && email.includes('@@')) {
+                    emailIndicator.style.display = 'block';
+                    emailSpinner.style.display = 'block';
+                    emailIcon.style.display = 'none';
+                    
+                    emailTimeout = setTimeout(function() {
+                        fetch('@Url.Action("CheckEmailExists", "Account")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: JSON.stringify(email)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            emailSpinner.style.display = 'none';
+                            emailIcon.style.display = 'block';
+                            
+                            if (data.exists) {
+                                emailIcon.textContent = '❌';
+                                emailIcon.style.color = '#dc3545';
+                                emailFeedback.textContent = data.message;
+                                emailFeedback.className = 'form-text text-danger';
+                            } else {
+                                emailIcon.textContent = '✅';
+                                emailIcon.style.color = '#28a745';
+                                emailFeedback.textContent = data.message;
+                                emailFeedback.className = 'form-text text-success';
+                            }
+                        })
+                        .catch(error => {
+                            emailSpinner.style.display = 'none';
+                            emailIcon.style.display = 'none';
+                            emailIndicator.style.display = 'none';
+                        });
+                    }, 500);
+                }
+            });
+
+
+
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const spinner = submitBtn ? submitBtn.querySelector('.spinner-border') : null;
+                    if (submitBtn && spinner) {
+                        submitBtn.disabled = true;
+                        spinner.classList.remove('d-none');
+                    }
+                });
+            }
+
+            const passwordInput = document.querySelector('input[name="Password"]');
+            if (passwordInput) {
+                const hintElement = document.querySelector('.password-hint');
+                
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    if (hintElement) {
+                        if (password.length === 0) {
+                            hintElement.className = 'form-text password-hint text-muted';
+                            hintElement.textContent = 'Enter at least 8 characters';
+                        } else if (password.length < 8) {
+                            hintElement.className = 'form-text password-hint text-warning';
+                            hintElement.textContent = `${password.length}/8 characters`;
+                        } else {
+                            hintElement.className = 'form-text password-hint text-success';
+                            hintElement.textContent = 'Good password length ✓';
+                        }
+                    }
+                });
+                
+                if (hintElement && passwordInput.value.length === 0) {
+                    hintElement.className = 'form-text password-hint text-muted';
+                    hintElement.textContent = 'Enter at least 8 characters';
+                }
+            }
+
+            const tempDataDiv = document.getElementById('tempData');
+            const registerSuccess = tempDataDiv.getAttribute('data-register-success');
+            const registerError = tempDataDiv.getAttribute('data-register-error');
+            const loginUrl = tempDataDiv.getAttribute('data-login-url');
+
+            if (registerSuccess) {
+                Swal.fire({
+                    title: 'Email Verified Successfully!',
+                    html: `
+                        <div class="text-center">
+                            <div class="alert alert-success" style="border: none; background: #d4edda; color: #155724; margin-bottom: 20px;">
+                                <strong>Congratulations!</strong><br>
+                                Your email address has been successfully verified. Your account is now active and ready to use.
+                            </div>
+                            <div class="alert alert-info" style="border: none; background: #d1ecf1; color: #0c5460; margin-bottom: 20px;">
+                                <strong>What's next?</strong><br>
+                                You can now log in to your account and start exploring our platform.
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <p><strong>Log in your account</strong></p>
+                                <p><strong>Explore our features</strong></p>
+                                <p><strong>Update your profile settings</strong></p>
+                                <p><strong>Start using our services</strong></p>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonText: 'Log in to Your Account',
+                    confirmButtonColor: '#28a745',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'swal-wide'
+                    }
+                }).then(function() {
+                    window.location.href = loginUrl;
+                });
+            }
+
+            if (registerError) {
+                var rawErrors = registerError;
+                if (rawErrors) {
+                    var errors = rawErrors.split("||").filter(function(e) { return e.trim() !== ""; });
+                    if (errors.length > 0) {
+                        Swal.fire({
+                            title: 'Registration Failed',
+                            icon: 'error',
+                            html: '<div style="text-align:left;"><ul class="mb-0">' + errors.map(function(e) { return '<li>' + e + '</li>'; }).join('') + '</ul></div>',
+                            confirmButtonText: 'Try Again',
+                            width: 500
+                        });
+                    }
+                }
+            }
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

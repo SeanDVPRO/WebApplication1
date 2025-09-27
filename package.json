@@ -1,0 +1,27 @@
+{
+  "name": "webapplication1",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">\r   <img height=\"150\" src=\"https://media.giphy.com/media/M9gbBd9nbDrOTu1Mqx/giphy.gif\" />\r </div>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SeanDVPRO/WebApplication1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SeanDVPRO/WebApplication1/issues"
+  },
+  "homepage": "https://github.com/SeanDVPRO/WebApplication1#readme",
+  "devDependencies": {
+    "eslint": "^9.36.0"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "tailwindcss": "^4.1.13"
+  }
+}

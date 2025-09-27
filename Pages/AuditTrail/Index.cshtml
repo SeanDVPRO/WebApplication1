@@ -1,0 +1,226 @@
+@page
+@model WebApplication1.Pages.AuditTrail.IndexModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Audit Logs";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auditlog.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" />
+}
+
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+    <script>
+        $(function () {
+            $('#auditTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'csvHtml5',
+                    'excelHtml5',
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'Export PDF',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5],
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 5) {
+                                        var oldValueMatch = data.match(/Old Value:<\/strong>\s*<pre>(.*?)<\/pre>/);
+                                        var newValueMatch = data.match(/New Value:<\/strong>\s*<pre>(.*?)<\/pre>/);
+                                        var oldValue = oldValueMatch ? oldValueMatch[1] : '';
+                                        var newValue = newValueMatch ? newValueMatch[1] : '';
+                                        if (oldValue || newValue) {
+                                            return 'Old Value: ' + oldValue + '\\nNew Value: ' + newValue;
+                                        }
+                                        return '';
+                                    }
+                                    return $('<div>').html(data).text();
+                                }
+                            }
+                        },
+                        customize: function (doc) {
+                            doc.content[1].layout = {
+                                hLineWidth: function () { return 0.5; },
+                                vLineWidth: function () { return 0.5; },
+                                hLineColor: function () { return '#aaa'; },
+                                vLineColor: function () { return '#aaa'; },
+                                paddingLeft: function () { return 4; },
+                                paddingRight: function () { return 4; },
+                                paddingTop: function () { return 2; },
+                                paddingBottom: function () { return 2; }
+                            };
+                            doc.content[1].table.widths = ['3%', '12%', '15%', '8%', '52%', '10%'];
+                            var body = doc.content[1].table.body;
+                            for (var i = 1; i < body.length; i++) {
+                                if (body[i][5].text) {
+                                    body[i][5].fontSize = 7;
+                                    body[i][5].alignment = 'left';
+                                    body[i][5].noWrap = false;
+                                }
+                            }
+                            doc.content.splice(0, 0, {
+                                alignment: 'center',
+                                margin: [0, 0, 0, 12],
+                                stack: [
+                                    { text: 'Reports | Audit Logs', style: 'header' },
+                                    { text: 'DVPRO', style: 'subheader' },
+                                    { text: 'Audit Logs', style: 'subheader' },
+                                    { text: 'As Of ' + new Date().toLocaleDateString(), style: 'subheader' }
+                                ]
+                            });
+                            doc.footer = function (currentPage, pageCount) {
+                                return {
+                                    columns: [
+                                        {
+                                            text: 'Run Date: ' + new Date().toLocaleString(),
+                                            alignment: 'left',
+                                            margin: [40, 0, 0, 0]
+                                        },
+                                        {
+                                            text: 'Page ' + currentPage + ' of ' + pageCount,
+                                            alignment: 'right',
+                                            margin: [0, 0, 40, 0]
+                                        }
+                                    ]
+                                };
+                            };
+                        }
+                    }
+                ],
+                columnDefs: [
+                    { targets: 6, visible: false }
+                ]
+            });
+        });
+
+        function toggleAuditChange(id) {
+            var el = document.getElementById('audit-change-' + id);
+            if (el) {
+                el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+            }
+        }
+    </script>
+}
+
+<h2 class="audit-header">Audit Logs</h2>
+
+@if (Model.IsGuest)
+{
+    <div class="alert alert-warning text-center mt-4">
+        <strong>Please log in</strong> to view audit logs, filters, and export options.
+    </div>
+}
+else
+{
+    <form method="get" class="audit-filters mb-3">
+        <div class="filter-group">
+            <label>Start Date</label>
+            <input type="date" name="StartDate" class="form-control" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="filter-group">
+            <label>End Date</label>
+            <input type="date" name="EndDate" class="form-control" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="filter-group">
+            <label>User</label>
+            <select name="SelectedUser" class="form-control">
+                <option value="">Show All</option>
+                @foreach (var user in Model.Users)
+                {
+                    <option value="@user.UserId" @(user.UserId == Model.SelectedUser ? "selected" : null)>
+                        @user.FullName
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Type</label>
+            <select name="SelectedType" class="form-control">
+                <option value="">Show All</option>
+                @foreach (var type in Model.Types)
+                {
+                    <option value="@type" @(type == Model.SelectedType ? "selected" : null)>@type</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Show</label>
+            <select name="pageSize" class="form-control">
+                <option value="10" @(Model.PageSize == 10 ? "selected" : null)>10</option>
+                <option value="25" @(Model.PageSize == 25 ? "selected" : null)>25</option>
+                <option value="50" @(Model.PageSize == 50 ? "selected" : null)>50</option>
+                <option value="100" @(Model.PageSize == 100 ? "selected" : null)>100</option>>
+            </select>
+        </div>
+        <div class="filter-group mt-2">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+        </div>
+    </form>
+
+    <div class="table-responsive" style="width: 100%; overflow-x: auto;">
+        <table id="auditTable" class="table table-bordered table-striped audit-table align-middle" style="width:100%;">
+            <thead>
+                <tr>
+                    <th style="width: 3%; text-align:center; min-width: 40px;">No</th>
+                    <th style="width: 12%; min-width: 130px;">Date</th>
+                    <th style="width: 15%; min-width: 140px;">User</th>
+                    <th style="width: 8%; min-width: 80px;">Type</th>
+                    <th style="width: 52%; min-width: 300px;">Description</th>
+                    <th style="width: 10%; text-align:center; min-width: 100px;">Changes</th>
+                    <th style="display:none;">HiddenCol</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.AuditLogs != null)
+                {
+                    int no = (Model.CurrentPage - 1) * Model.PageSize + 1;
+
+                    foreach (var log in Model.AuditLogs)
+                    {
+                        <tr>
+                            <td class="text-center">@no</td>
+                            <td>@log.Timestamp.ToString("MM/dd/yyyy HH:mm")</td>
+                            <td>@(string.IsNullOrEmpty(log.FullName) ? log.UserId : log.FullName)</td>
+                            <td>@log.Action</td>
+                            <td>@log.Description</td>
+                            <td class="text-center" style="position:relative;">
+                                @if (!string.IsNullOrEmpty(log.OldValue) || !string.IsNullOrEmpty(log.NewValue))
+                                {
+                                    <button class="btn btn-primary btn-sm audit-view-btn" type="button" onclick="toggleAuditChange('@log.Id')">View</button>
+                                    <div id="audit-change-@log.Id"
+                                         class="audit-collapse card card-body"
+                                         style="display:none; position:static; min-width:250px; max-width:100%; margin:0.5rem auto 0 auto;">
+                                        <strong>Change Details</strong><br />
+                                        <strong>Old Value:</strong> <pre>@(string.IsNullOrEmpty(log.OldValue) ? "No changes" : log.OldValue)</pre>
+                                        <strong>New Value:</strong> <pre>@(string.IsNullOrEmpty(log.NewValue) ? "No changes" : log.NewValue)</pre>
+                                        <button class="btn btn-secondary btn-sm mt-2" type="button" onclick="toggleAuditChange('@log.Id')">Hide</button>
+                                    </div>
+                                }
+                            </td>
+                            <td style="display:none;">HIDDEN</td>
+                        </tr>
+                        no++;
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr class="audit-footer">
+                    <td colspan="7">Showing page @Model.CurrentPage of @Model.TotalPages</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+}

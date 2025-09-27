@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Version>1.0.6</Version>
+		<AssemblyInformationalVersion>1.0.6+$(BuildMetadata)</AssemblyInformationalVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MailKit" Version="4.13.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Rewrite" Version="2.3.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="MimeKit" Version="4.13.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="PdfSharp" Version="6.2.1" />
+		<PackageReference Include="PDFsharp-MigraDoc" Version="6.1.1" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
+	</ItemGroup>
+
+	<Target Name="InjectBuildMetadata" BeforeTargets="BeforeBuild">
+		<Exec Command="git rev-parse HEAD &gt; BuildMetadata.txt" ContinueOnError="true" />
+		<ItemGroup>
+			<BuildMetadataFile Include="BuildMetadata.txt" Condition="Exists('BuildMetadata.txt')" />
+		</ItemGroup>
+		<ReadLinesFromFile File="BuildMetadata.txt" Condition="Exists('BuildMetadata.txt')">
+			<Output TaskParameter="Lines" PropertyName="BuildMetadata" />
+		</ReadLinesFromFile>
+		<PropertyGroup Condition="'$(BuildMetadata)' == ''">
+			<BuildMetadata>dev-build</BuildMetadata>
+		</PropertyGroup>
+	</Target>
+</Project>

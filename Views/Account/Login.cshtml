@@ -1,0 +1,181 @@
+@using WebApplication1.ViewModels
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Welcome Back! 👋</h2>
+            <p class="text-muted">Please sign in to your account</p>
+        </div>
+
+        <form asp-action="Login" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="form-label">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text">📧</span>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter your email" required>
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text">🔒</span>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                </div>
+                <a asp-controller="Account" asp-action="ForgotPassword" class="text-decoration-none">
+                    Forgot Password?
+                </a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                Sign In
+            </button>
+
+            <div class="text-center">
+                <span class="text-muted">Don't have an account? </span>
+                <a asp-controller="Account" asp-action="Register" class="text-decoration-none fw-bold">Create Account</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="tempData"
+     data-login-success="@TempData["LoginSuccess"]"
+     data-login-error="@TempData["LoginError"]"
+     data-unverified-email="@TempData["UnverifiedEmail"]"
+     data-unregistered-email="@TempData["UnregisteredEmail"]"
+     data-redirect-url="@Url.Action("Index", "Home")"
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const spinner = submitBtn ? submitBtn.querySelector('.spinner-border') : null;
+                    if (submitBtn && spinner) {
+                        submitBtn.disabled = true;
+                        spinner.classList.remove('d-none');
+                    }
+                });
+            }
+
+            const tempDataDiv = document.getElementById('tempData');
+            const loginSuccess = tempDataDiv.getAttribute('data-login-success');
+            const loginError = tempDataDiv.getAttribute('data-login-error');
+            const unverifiedEmail = tempDataDiv.getAttribute('data-unverified-email');
+            const unregisteredEmail = tempDataDiv.getAttribute('data-unregistered-email');
+            const redirectUrl = tempDataDiv.getAttribute('data-redirect-url');
+
+            if (loginSuccess) {
+                Swal.fire({
+                    title: 'Welcome! 🎉',
+                    text: loginSuccess,
+                    icon: 'success',
+                    confirmButtonText: 'Continue',
+                    timer: 3000,
+                    timerProgressBar: true
+                }).then(function() {
+                    window.location.href = redirectUrl;
+                });
+            }
+
+            if (loginError) {
+                if (unregisteredEmail && loginError.includes('not registered')) {
+                    Swal.fire({
+                        title: 'Email Not Registered',
+                        html: `
+                            <p>${loginError}</p>
+                            <p class="mt-3 text-muted">Would you like to create an account with this email?</p>
+                        `,
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonText: 'Create Account',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#28a745',
+                        width: 450
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '@Url.Action("Register", "Account")' + '?email=' + encodeURIComponent(unregisteredEmail);
+                        }
+                    });
+                } else if (unverifiedEmail && loginError.includes('verify your email')) {
+                    Swal.fire({
+                        title: 'Email Verification Required',
+                        html: `
+                            <p>${loginError}</p>
+                            <p class="mt-3 text-muted">Would you like us to resend the verification email?</p>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Resend Email',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#007bff',
+                        width: 450
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '@Url.Action("ResendVerificationEmail", "Account")';
+                            
+                            const emailInput = document.createElement('input');
+                            emailInput.type = 'hidden';
+                            emailInput.name = 'email';
+                            emailInput.value = unverifiedEmail;
+                            
+                            const tokenInput = document.createElement('input');
+                            tokenInput.type = 'hidden';
+                            tokenInput.name = '__RequestVerificationToken';
+                            tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                            
+                            form.appendChild(emailInput);
+                            form.appendChild(tokenInput);
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Login Failed',
+                        text: loginError,
+                        icon: 'error',
+                        confirmButtonText: 'Try Again',
+                        width: 400
+                    });
+                }
+            }
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

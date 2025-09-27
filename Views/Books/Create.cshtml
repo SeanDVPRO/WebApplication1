@@ -1,0 +1,47 @@
+@model WebApplication1.Models.Book
+@{
+    ViewData["Title"] = "Add Book";
+}
+
+<h2 class="mb-4">Add New Book</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Author" class="form-label"></label>
+        <input asp-for="Author" class="form-control" />
+        <span asp-validation-for="Author" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Genre" class="form-label"></label>
+        <select asp-for="Genre" class="form-control" asp-items="@(new SelectList(ViewBag.Genres))">
+            <option value="">-- Select Genre --</option>
+        </select>
+        <span asp-validation-for="Genre" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="YearPublished" class="form-label"></label>
+        <input asp-for="YearPublished" class="form-control" type="date" />
+        <span asp-validation-for="YearPublished" class="text-danger"></span>
+        <small class="form-text text-muted">Select the publication date of the book</small>
+    </div>
+    >
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
