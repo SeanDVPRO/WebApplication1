@@ -154,7 +154,6 @@
     word-break: break-word;
 }
 
-/* DataTables search and buttons styling */
 .dataTables_wrapper .dataTables_filter {
     text-align: right;
     margin-bottom: 1rem;
